@@ -24,6 +24,7 @@ void help_command(int, char **);
 void host_command(int, char **);
 void mmtest_command(int, char **);
 void test_command(int, char **);
+int stio(char *);
 void _command(int, char **);
 
 #define MKCL(n, d) {.name=#n, .fptr=n ## _command, .desc=d}
@@ -68,6 +69,7 @@ void ls_command(int n, char *argv[]){
         dir = fs_opendir("");
     }else if(n == 1){
         dir = fs_opendir(argv[1]);
+        fio_printf(1, "%d\n", dir);
         //if(dir == )
     }else{
         fio_printf(1, "Too many argument!\r\n");
@@ -166,6 +168,27 @@ void test_command(int n, char *argv[]) {
 
     fio_printf(1, "\r\n");
     
+    if(n >= 3){
+    	if(*argv[1] == 'f'){
+    		if(*argv[2] != 0 ){//run fibonacci
+    			int i ;
+    			int count = stio(argv[2]);
+    			int previous = -1;
+  				int result = 1;
+  				int sum=0;
+  				for (i = 0; i <= count; i++) {
+				    sum = result + previous;
+				    previous = result;
+				    result = sum;
+    			}
+    			fio_printf(1, "The fibonacci at %d element is : %d\n\r",count,result);
+    		}
+    	}
+	}
+	else{
+		fio_printf(1, "Invalid command!\r\n");
+	}
+
     handle = host_action(SYS_SYSTEM, "mkdir -p output");
     handle = host_action(SYS_SYSTEM, "touch output/syslog");
 
@@ -185,6 +208,17 @@ void test_command(int n, char *argv[]) {
 
     host_action(SYS_CLOSE, handle);
 }
+ 
+int stio(char *str){
+	int i,result = 0;
+	int count = strlen(str);
+	for(i = 0; i< count ; i++){
+		result = result * 10 + (str[i] - '0');
+	}
+	return result;
+}
+
+
 
 void _command(int n, char *argv[]){
     (void)n; (void)argv;
