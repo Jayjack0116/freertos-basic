@@ -8,7 +8,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "host.h"
-
+#define base 1000000000
 typedef struct {
 	const char *name;
 	cmdfunc *fptr;
@@ -24,7 +24,11 @@ void help_command(int, char **);
 void host_command(int, char **);
 void mmtest_command(int, char **);
 void test_command(int, char **);
+int fibonacci(int );
+void test_fibonacci_ov(int);
+void fib_over_46(int);
 int stio(char *);
+int get_9_digits(int);
 void _command(int, char **);
 
 #define MKCL(n, d) {.name=#n, .fptr=n ## _command, .desc=d}
@@ -171,17 +175,8 @@ void test_command(int n, char *argv[]) {
     if(n >= 3){
     	if(*argv[1] == 'f'){
     		if(*argv[2] != 0 ){//run fibonacci
-    			int i ;
     			int count = stio(argv[2]);
-    			int previous = -1;
-  				int result = 1;
-  				int sum=0;
-  				for (i = 0; i <= count; i++) {
-				    sum = result + previous;
-				    previous = result;
-				    result = sum;
-    			}
-    			fio_printf(1, "The fibonacci at %d element is : %d\n\r",count,result);
+    			test_fibonacci_ov(count);
     		}
     	}
 	}
@@ -208,9 +203,56 @@ void test_command(int n, char *argv[]) {
 
     host_action(SYS_CLOSE, handle);
 }
- 
+
+int fibonacci(int x){
+	int previous = -1;
+  	int result = 1;
+  	int i=0;
+  	int sum=0;
+  	for (i = 0; i <= x; i++) {
+    	sum = result + previous;
+	    previous = result;
+	    result = sum;
+	}
+	return result;
+
+}
+
+void test_fibonacci_ov(int count){
+
+	if( count <= 46 ){
+		fio_printf(1, "The fibonacci at %d element is : %d\n\r ",count,fibonacci(count));
+	}
+	else //overflow
+		fib_over_46(count);
+
+}
+
+void fib_over_46(int count){
+	int a = fibonacci(45);
+	int b = fibonacci(46);
+	int ha = a / base;//10-digit num
+	int hb = b / base;//10-digit num
+	int i,sum = 0;
+	int ac = 0 ;
+	int x = count -47;
+	a = get_9_digits(a);
+	b = get_9_digits(b);
+
+	for(i = 0; i <= x ; i++){
+		ac = ha + hb;
+		ac += (a+b) / base;
+		sum = get_9_digits(a+b);
+		a = b;
+		b = sum;
+		ha = hb;
+		hb = ac;
+	}
+	fio_printf(1, "The fibonacci at %d element is : %d%d\n\r ",count,ac,sum);
+}
+
 int stio(char *str){
-	int i,result = 0;
+	int i,result = 0; 
 	int count = strlen(str);
 	for(i = 0; i< count ; i++){
 		result = result * 10 + (str[i] - '0');
@@ -218,7 +260,10 @@ int stio(char *str){
 	return result;
 }
 
-
+int get_9_digits(int num){
+	int x = num / base;
+	return (num - x * base);
+}
 
 void _command(int n, char *argv[]){
     (void)n; (void)argv;
