@@ -173,7 +173,8 @@ void test_command(int n, char *argv[]) {
     fio_printf(1, "\r\n");
     
     if(n >= 3){
-    	if(*argv[1] == 'f'){
+    	if(*argv[1] == '
+    		f'){
     		if(*argv[2] != 0 ){//run fibonacci
     			int count = stio(argv[2]);
     			test_fibonacci_ov(count);
@@ -228,7 +229,7 @@ void test_fibonacci_ov(int count){
 
 }
 
-void fib_over_46(int count){
+void fib_over_46(int count){//up limit to 79 element
 	int a = fibonacci(45);
 	int b = fibonacci(46);
 	int ha = a / base;//10-digit num
