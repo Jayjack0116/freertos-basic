@@ -33,6 +33,7 @@ void _command(int, char **);
 void new_command(int, char **);
 void update_info(void *);
 
+
 #define MKCL(n, d) {.name=#n, .fptr=n ## _command, .desc=d}
 
 cmdlist cl[]={
@@ -49,10 +50,22 @@ cmdlist cl[]={
 };
 
 void new_command(int n, char *argv[]){
-	fio_printf(1,"\r\n"); 
-	xTaskCreate(update_info,
+	fio_printf(1,"\r\n");
+
+	if(n == 2){
+		switch(*argv[1]){
+			case 'u':
+				xTaskCreate(update_info,
 	            (signed portCHAR *) "UPDATE",
 	            512 /* stack size */, NULL, tskIDLE_PRIORITY + 2, NULL);
+	            break;
+	         default:
+	         	fio_printf(1,"Invalid command.\r\n");
+	         	break;
+		}
+	}
+	else
+		fio_printf(1,"Please enter new [condition] \r\n");		
 }
 
 int parse_command(char *str, char *argv[]){
@@ -133,6 +146,7 @@ void cat_command(int n, char *argv[]){
     }else if(dump_status == -2){
 		fio_printf(2, "\r\nFile system not registered.\r\n", argv[1]);
     }
+
 }
 
 void man_command(int n, char *argv[]){
@@ -283,8 +297,33 @@ void _command(int n, char *argv[]){
 void update_info(void *para){
 	while(1){
 		//update information to host systeminfo
+		int i;
+		int handle;
+    	int error;
+
+		for ( i =0 ; i <999999999 ; i++ ) {}
+		handle = host_action(SYS_SYSTEM, "mkdir -p output");
+	    handle = host_action(SYS_SYSTEM, "touch output/syslog");
+
+	    handle = host_action(SYS_OPEN, "output/syslog", 8);
+	    if(handle == -1) {
+	        fio_printf(1, "Open file error!\n\r");
+	        return;
+	    }
+
+	    char *buffer = "Update!!!\n";
+	    error = host_action(SYS_WRITE, handle, (void *)buffer, strlen(buffer));
+	    if(error != 0) {
+	        fio_printf(1, "Write file error! Remain %d bytes didn't write in the file.\n\r", error);
+	        host_action(SYS_CLOSE, handle);
+	        return;
+	    }
+
+	    host_action(SYS_CLOSE, handle);
 	}
 }
+ 
+
 
 cmdfunc *do_command(const char *cmd){
 
