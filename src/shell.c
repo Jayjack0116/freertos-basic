@@ -30,6 +30,8 @@ void fib_over_46(int);
 int stio(char *);
 int get_9_digits(int);
 void _command(int, char **);
+void new_command(int, char **);
+void update_info(void *);
 
 #define MKCL(n, d) {.name=#n, .fptr=n ## _command, .desc=d}
 
@@ -42,8 +44,16 @@ cmdlist cl[]={
 	MKCL(mmtest, "heap memory allocation test"),
 	MKCL(help, "help"),
 	MKCL(test, "test new function"),
+	MKCL(new, "Build new task"),
 	MKCL(, ""),
 };
+
+void new_command(int n, char *argv[]){
+	fio_printf(1,"\r\n"); 
+	xTaskCreate(update_info,
+	            (signed portCHAR *) "UPDATE",
+	            512 /* stack size */, NULL, tskIDLE_PRIORITY + 2, NULL);
+}
 
 int parse_command(char *str, char *argv[]){
 	int b_quote=0, b_dbquote=0;
@@ -79,7 +89,7 @@ void ls_command(int n, char *argv[]){
         fio_printf(1, "Too many argument!\r\n");
         return;
     }
-(void)dir;   // Use dir
+	(void)dir;   // Use dir
 }
 
 int filedump(const char *filename){
@@ -106,8 +116,8 @@ int filedump(const char *filename){
 void ps_command(int n, char *argv[]){
 	signed char buf[1024];
 	vTaskList(buf);
-        fio_printf(1, "\n\rName          State   Priority  Stack  Num\n\r");
-        fio_printf(1, "*******************************************\n\r");
+    fio_printf(1, "\n\rName          State   Priority  Stack  Num\n\r");
+    fio_printf(1, "*******************************************\n\r");
 	fio_printf(1, "%s\r\n", buf + 2);	
 }
 
@@ -173,8 +183,7 @@ void test_command(int n, char *argv[]) {
     fio_printf(1, "\r\n");
     
     if(n >= 3){
-    	if(*argv[1] == '
-    		f'){
+    	if(*argv[1] == 'f'){
     		if(*argv[2] != 0 ){//run fibonacci
     			int count = stio(argv[2]);
     			test_fibonacci_ov(count);
@@ -269,6 +278,12 @@ int get_9_digits(int num){
 void _command(int n, char *argv[]){
     (void)n; (void)argv;
     fio_printf(1, "\r\n");
+}
+
+void update_info(void *para){
+	while(1){
+		//update information to host systeminfo
+	}
 }
 
 cmdfunc *do_command(const char *cmd){
